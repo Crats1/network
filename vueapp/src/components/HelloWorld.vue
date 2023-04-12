@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { defineProps } from 'vue';
 
-const props = defineProps({
-    msg: String
-});
+const props = defineProps<{
+    msg: string
+}>();
 console.log('HelloWorld.vue props:', { props });
 </script>
 
