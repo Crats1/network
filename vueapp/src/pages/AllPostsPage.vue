@@ -1,32 +1,36 @@
 <template>
-    <h3>All Posts</h3>
-    <NewPostCard @add-new-post="addNewPost" />
-    <p v-if="testPosts.length === 0">Nothing posted yet</p>
-    <div v-for="post in testPosts" :key="post.id">
-        <PostCard :author="post.author" :content="post.content" :post-date="post.postDate" />
+    <div class="d-flex flex-column gap-3 mt-3">
+        <h1><strong>All Posts</strong></h1>
+        <NewPostCard @add-new-post="addNewPost" />
+        <p v-if="posts.length === 0">Nothing posted yet</p>
+        <div v-for="post in posts" :key="post.id">
+            <PostCard
+                :author="`Author ${post.userID}`"
+                :content="post.content"
+                :updated-at="post.updatedAt ?? post.createdAt"
+            />
+        </div>
     </div>
 </template>
 
 <script lang="ts" setup>
 import NewPostCard from '@/components/NewPostCard.vue';
 import PostCard from '@/components/PostCard.vue';
-import { ref } from 'vue';
+import { Post } from '@/types';
+import { ref, watchEffect } from 'vue';
+import postsServices from '@/services/posts';
 
-const testPosts = ref(Array.from({ length: 5 }).map((_, i) => ({
-    id: i,
-    author: `author${i}`,
-    content: `content${i}`,
-    postDate: `postDate${i}`,
-})));
+const posts = ref<Post[]>([]);
 
-defineProps<{
-    author: string,
-    content: string,
-    postDate: string
-}>();
+watchEffect(async () => {
+    const result = await postsServices.getAllPosts();
+    console.log('get all posts result', result);
+    posts.value = result;
+});
 
-function addNewPost(content: string) {
-    console.log('all posts page addNewPost', content);
+function addNewPost(newPost: Post) {
+    console.log('all posts page addNewPost', newPost);
+    posts.value.push(newPost);
 }
 </script>
 

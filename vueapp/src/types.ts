@@ -3,8 +3,9 @@ export interface User {
 }
 
 export interface Post {
-    author: string;
+    id: number;
     content: string;
-    postDate: Date;
-    likes: number;
+    createdAt: Date;
+    updatedAt?: Date;
+    userID: number;
 }
