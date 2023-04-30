@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using webapi.Data;
 
 namespace webapi.Controllers;
 
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class UserController : ControllerBase
 {

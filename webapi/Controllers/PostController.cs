@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using webapi.Data;
@@ -17,21 +18,41 @@ public class PostController : ControllerBase
         _context = context;
     }
 
-    [HttpGet]
-    public ActionResult<List<Post>> GetAll()
+    [HttpGet, Authorize]
+    public async Task<ActionResult<List<Post>>> GetAll()
     {
-        return _context.Posts.ToList();
+        return await _context.Posts.ToListAsync();
     }
 
-    [HttpPost]
-    public async Task<ActionResult<Post>> CreatePost(Post post)
+    [HttpGet("{id}"), Authorize]
+    public async Task<ActionResult<Post>> GetPost(int id)
     {
-        _context.Posts.Add(post);
-        await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(CreatePost), new { id = post.ID }, post);
+        var post = await _context.Posts.FindAsync(id);
+        if (post == null) return NotFound();
+        return post;
     }
 
-    [HttpPut("{id}")]
+    [HttpPost, Authorize, ValidateAntiForgeryToken]
+    public async Task<ActionResult<Post>> CreatePost([Bind("Content", "UserID")] Post post)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+            _context.Posts.Add(post);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetPost), new { id = post.ID }, post);
+        }
+        catch (DbUpdateException)
+        {
+            ModelState.AddModelError("", "Unable to add post");
+            throw;
+        }
+    }
+
+    [HttpPut("{id}"), Authorize, ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdatePost(int id, Post post)
     {
         if (id != post.ID)
@@ -51,8 +72,8 @@ public class PostController : ControllerBase
         return NoContent();
     }
 
-    [HttpPut("like/{id}")]
-    public IActionResult Like(int id, int userId)
+    [HttpPut("like/{id}"), Authorize]
+    public async Task<IActionResult> Like(int id, [FromBody] int userId)
     {
         return NoContent();
     }
