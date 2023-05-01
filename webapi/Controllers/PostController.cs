@@ -8,6 +8,7 @@ using webapi.Models;
 namespace webapi.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class PostController : ControllerBase
 {
@@ -18,21 +19,40 @@ public class PostController : ControllerBase
         _context = context;
     }
 
-    [HttpGet, Authorize]
-    public async Task<ActionResult<List<Post>>> GetAll()
+    [HttpGet]
+    public async Task<ActionResult<List<PostDTO>>> GetAll()
     {
-        return await _context.Posts.ToListAsync();
+        var test = User;
+        return await _context.Posts
+            .Select(post => new PostDTO()
+            {
+                ID = post.ID,
+                Content = post.Content,
+                CreatedAt = post.CreatedAt,
+                UpdatedAt = post.UpdatedAt,
+                IsCreatedByUser = false, // TODO
+                Username = post.User != null ? post.User.Username : "",
+            })
+            .ToListAsync();
     }
 
-    [HttpGet("{id}"), Authorize]
-    public async Task<ActionResult<Post>> GetPost(int id)
+    [HttpGet("{id}")]
+    public async Task<ActionResult<PostDTO>> GetPost(int id)
     {
         var post = await _context.Posts.FindAsync(id);
         if (post == null) return NotFound();
-        return post;
+        return new PostDTO()
+        {
+            ID = post.ID,
+            Content = post.Content,
+            CreatedAt = post.CreatedAt,
+            UpdatedAt = post.UpdatedAt,
+            IsCreatedByUser = false, // TODO
+            Username = post.User?.Username ?? ""
+        };
     }
 
-    [HttpPost, Authorize, ValidateAntiForgeryToken]
+    [HttpPost, ValidateAntiForgeryToken]
     public async Task<ActionResult<Post>> CreatePost([Bind("Content", "UserID")] Post post)
     {
         try
@@ -43,7 +63,7 @@ public class PostController : ControllerBase
             }
             _context.Posts.Add(post);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetPost), new { id = post.ID }, post);
+            return CreatedAtAction(nameof(GetPost), new { id = post.ID }, post); // TODO
         }
         catch (DbUpdateException)
         {
@@ -52,7 +72,7 @@ public class PostController : ControllerBase
         }
     }
 
-    [HttpPut("{id}"), Authorize, ValidateAntiForgeryToken]
+    [HttpPut("{id}"), ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdatePost(int id, Post post)
     {
         if (id != post.ID)
@@ -72,7 +92,13 @@ public class PostController : ControllerBase
         return NoContent();
     }
 
-    [HttpPut("like/{id}"), Authorize]
+    [HttpGet("{id}/likes")]
+    public async Task<IActionResult> GetLikes(int id)
+    {
+        return NoContent();
+    }
+
+    [HttpPost("{id}/likes")]
     public async Task<IActionResult> Like(int id, [FromBody] int userId)
     {
         return NoContent();

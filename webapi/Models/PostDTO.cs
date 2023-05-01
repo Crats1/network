@@ -2,15 +2,15 @@
 
 namespace webapi.Models
 {
-    public class Post
+    public class PostDTO
     {
         public int ID { get; set; }
         [Required]
-        public string Content { get; set; } = String.Empty;
+        public string Content { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
-        public int UserID { get; set; }
 
-        public User? User { get; set; }
+        public bool IsCreatedByUser { get; set; }
+        public string Username { get; set; } = string.Empty;
     }
 }

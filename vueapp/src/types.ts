@@ -1,5 +1,12 @@
 export interface User {
+    id: number;
     username: string;
+}
+
+export interface LoginResponse {
+    id: number;
+    username: string;
+    token: string;
 }
 
 export interface Post {
@@ -7,5 +14,5 @@ export interface Post {
     content: string;
     createdAt: Date;
     updatedAt?: Date;
-    userID: number;
+    username: string;
 }

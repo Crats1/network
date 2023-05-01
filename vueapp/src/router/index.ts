@@ -4,12 +4,13 @@ import LoginPage from '@/pages/LoginPage.vue';
 import RegisterPage from '@/pages/RegisterPage.vue';
 import FollowingPage from '@/pages/FollowingPage.vue';
 import ProfilePage from '@/pages/ProfilePage.vue';
+import { isAuthenticated } from '@/services/token';
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'home',
-    component: AllPostsPage
+    component: AllPostsPage,
   },
   {
     path: '/login',
@@ -37,5 +38,11 @@ const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes
 });
+
+router.beforeEach((to) => {
+  if (!isAuthenticated() && to.name !== 'login' && to.name !== 'register') {
+    return { name: 'login' };
+  }
+})
 
 export default router;

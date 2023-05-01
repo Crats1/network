@@ -12,7 +12,7 @@ namespace webapi.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly NetworkAppContext _context;
-    private TokenService _tokenService;
+    private readonly TokenService _tokenService;
 
     public AuthController(NetworkAppContext context, TokenService tokenService)
     {
@@ -40,6 +40,7 @@ public class AuthController : ControllerBase
 
             return Ok(new AuthResponse
             { 
+                ID = user.ID,
                 Username = user.Username,
                 Token = token
             });

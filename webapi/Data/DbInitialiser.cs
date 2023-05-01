@@ -17,11 +17,11 @@ namespace webapi.Data
 
             var users = new User[]
             {
-                new User{ Username="Test user 1", PasswordHash="password" },
-                new User{ Username="Test user 2", PasswordHash="password" },
-                new User{ Username="Test user 3", PasswordHash="password" },
-                new User{ Username="Test user 4", PasswordHash="password" },
-                new User{ Username="Test user 5", PasswordHash="password" },
+                new User{ Username="test1", PasswordHash="test" },
+                new User{ Username="test2", PasswordHash="test" },
+                new User{ Username="test3", PasswordHash="test" },
+                new User{ Username="test4", PasswordHash="test" },
+                new User{ Username="test5", PasswordHash="test" },
             };
 
             context.Users.AddRange(users);

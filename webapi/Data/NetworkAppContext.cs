@@ -1,9 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using webapi.Models;
 
 namespace webapi.Data;
 
 public class NetworkAppContext : DbContext
+//public class NetworkAppContext : IdentityDbContext<IdentityUser>
 {
     public NetworkAppContext(DbContextOptions<NetworkAppContext> options) : base(options) { }
 

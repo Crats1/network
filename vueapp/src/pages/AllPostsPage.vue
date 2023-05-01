@@ -1,6 +1,6 @@
 <template>
     <div class="d-flex flex-column gap-3 mt-3">
-        <h1><strong>All Posts</strong></h1>
+        <h1>All Posts</h1>
         <NewPostCard @add-new-post="addNewPost" />
         <p v-if="posts.length === 0">Nothing posted yet</p>
         <div v-for="post in posts" :key="post.id">
@@ -8,6 +8,7 @@
                 :author="`Author ${post.userID}`"
                 :content="post.content"
                 :updated-at="post.updatedAt ?? post.createdAt"
+                :user-id="post.userID"
             />
         </div>
     </div>
