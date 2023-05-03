@@ -5,7 +5,7 @@
             <form>
                 <textarea
                     v-model="newContent"
-                    class="form-control"
+                    class="form-control mb-1"
                     rows="3"
                 >
                 </textarea>

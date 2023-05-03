@@ -1,15 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace webapi.Models
 {
-    [Keyless]
+    [PrimaryKey(nameof(UserID), nameof(PostID))]
     public class UserLikesPosts
     {
         public int UserID { get; set; }
         public int PostID { get; set; }
-        public bool IsLiked { get; set; } = false;
+        public bool IsLiked { get; set; } = true;
 
-        public ApplicationUser? User { get; set; }
-        public Post? Post { get; set; }
+        public ApplicationUser User { get; set; } = null!;
+        public Post Post { get; set; } = null!;
     }
 }

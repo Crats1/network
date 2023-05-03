@@ -22,6 +22,12 @@ public class UserController : ControllerBase
         _userManager = userManager;
     }
 
+    [HttpGet("me")]
+    public ActionResult GetMe()
+    {
+        return NoContent();
+    }
+
     [HttpGet("{userId}")]
     public ActionResult GetUser(int userId)
     {
@@ -51,6 +57,12 @@ public class UserController : ControllerBase
 
     [HttpPost("{userId}/follow")]
     public IActionResult Follow(int userId)
+    {
+        return NoContent();
+    }
+
+    [HttpDelete("{userId}/follow")]
+    public IActionResult Unfollow(int userId)
     {
         return NoContent();
     }

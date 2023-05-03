@@ -15,7 +15,6 @@
         :is-created-by-user="post.isCreatedByUser"
         :username="post.username"
     />
-    />
 </template>
 
 <script lang="ts" setup>

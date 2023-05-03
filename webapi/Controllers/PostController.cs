@@ -25,7 +25,7 @@ public class PostController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<PostDTO>>> GetAll()
     {
-        var user = await _userManager.FindByNameAsync(User.Identity.Name);
+        ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
         return await _context.Posts
             .Include(post => post.User)
             .Select(post => new PostDTO(post, user.Id))
@@ -36,7 +36,7 @@ public class PostController : ControllerBase
     public async Task<ActionResult<PostDTO>> GetPost(int id)
     {
         ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
-        var post = await _context.Posts.FindAsync(id);
+        Post? post = await _context.Posts.FindAsync(id);
         if (post == null) return NotFound();
 
         return new PostDTO(post, user.Id);
@@ -52,7 +52,7 @@ public class PostController : ControllerBase
                 return BadRequest();
             }
             ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
-            var newPost = new Post
+            Post newPost = new Post
             {
                 Content = post.Content,
                 UserID = user.Id
@@ -90,15 +90,61 @@ public class PostController : ControllerBase
         return CreatedAtAction(nameof(GetPost), new { id = postToUpdate.ID }, new PostDTO(postToUpdate, user.Id));
     }
 
-    [HttpGet("{id}/likes")]
-    public async Task<IActionResult> GetLikes(int id)
+    [HttpGet("{postId}/likes")]
+    public async Task<ActionResult<int>> GetLikes(int postId)
     {
-        return NoContent();
+        ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
+        Post? post = await _context.Posts.FirstOrDefaultAsync(post => post.ID == postId);
+        if (post == null)
+        {
+            return NotFound();
+        }
+
+        int numLikes = _context.UsersLikesPosts
+            .Where(entry => entry.PostID == post.ID)
+            .Count();
+        return numLikes;
     }
 
-    [HttpPost("{id}/likes")]
-    public async Task<IActionResult> Like(int id, [FromBody] int userId)
+    [HttpPost("{postId}/likes")]
+    public async Task<ActionResult<int>> Like(int postId)
     {
-        return NoContent();
+        ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
+        Post? post = await _context.Posts
+            .Include(post => post.UserLikesPosts)
+            .FirstOrDefaultAsync(post => post.ID == postId);
+        if (post == null)
+        {
+            return NotFound();
+        }
+
+        UserLikesPosts? hasUserLikedPost = await _context.UsersLikesPosts.FirstOrDefaultAsync(entry => entry.UserID == user.Id);
+        if (hasUserLikedPost == null)
+        {
+            await _context.UsersLikesPosts.AddAsync(new UserLikesPosts { UserID = user.Id, PostID = post.ID, IsLiked = true });
+            _context.SaveChanges();
+        }
+        return post.UserLikesPosts.Count();
+    }
+
+    [HttpDelete("{postId}/likes")]
+    public async Task<ActionResult<int>> RemoveLike(int postId)
+    {
+        ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
+        Post? post = await _context.Posts
+            .Include(post => post.UserLikesPosts)
+            .FirstOrDefaultAsync(post => post.ID == postId);
+        if (post == null)
+        {
+            return NotFound();
+        }
+
+        UserLikesPosts? userLikedPost = await _context.UsersLikesPosts.FirstOrDefaultAsync(entry => entry.UserID == user.Id);
+        if (userLikedPost != null)
+        {
+            _context.UsersLikesPosts.Remove(userLikedPost);
+            _context.SaveChanges();
+        }
+        return post.UserLikesPosts.Count();
     }
 }
