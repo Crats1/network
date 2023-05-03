@@ -5,10 +5,13 @@
         <p v-if="posts.length === 0">Nothing posted yet</p>
         <div v-for="post in posts" :key="post.id">
             <PostCard
-                :author="`Author ${post.userID}`"
+                @edit-post="handleEditPost"
+                :id="post.id"
                 :content="post.content"
-                :updated-at="post.updatedAt ?? post.createdAt"
-                :user-id="post.userID"
+                :created-at="post.createdAt"
+                :updated-at="post.updatedAt"
+                :is-created-by-user="post.isCreatedByUser"
+                :username="post.username"
             />
         </div>
     </div>
@@ -32,6 +35,12 @@ watchEffect(async () => {
 function addNewPost(newPost: Post) {
     console.log('all posts page addNewPost', newPost);
     posts.value.push(newPost);
+}
+
+function handleEditPost(editedPost: Post) {
+    const editedPostIndex = posts.value.findIndex((post) => post.id === editedPost.id);
+    posts.value[editedPostIndex] = editedPost;
+    console.log('allpostspage handleEdit:', { editedPost, posts: posts.value });
 }
 </script>
 

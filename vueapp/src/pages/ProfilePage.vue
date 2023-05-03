@@ -1,34 +1,41 @@
 <template>
     <h1>Profile</h1>
-    <p>Username: {{  testUser.username }}</p>
-    <p>Followers: {{ testUser.followers }}</p>
-    <p>Following: {{ testUser.following }}</p>
+    <p>Username: {{  "TODO" }}</p>
+    <p>Followers: {{ "TODO" }}</p>
+    <p>Following: {{ "TODO" }}</p>
     <h3>Your posts</h3>
     <PostCard
-        v-for="post in testPosts"
+        v-for="post in posts"
         :key="post.id"
-        :author="post.author"
+        @edit-post="handleEditPost"
+        :id="post.id"
         :content="post.content"
-        :post-date="post.postDate"
+        :created-at="post.createdAt"
+        :updated-at="post.updatedAt"
+        :is-created-by-user="post.isCreatedByUser"
+        :username="post.username"
+    />
     />
 </template>
 
 <script lang="ts" setup>
 import PostCard from '@/components/PostCard.vue';
-import { ref } from 'vue';
+import { Post } from '@/types';
+import { ref, watchEffect } from 'vue';
+import userService from '@/services/user';
 
-const testUser = {
-    username: 'test username',
-    followers: 5,
-    following: 10,
+const posts = ref<Post[]>([]);
+
+watchEffect(async () => {
+    const result = await userService.getUserPosts();
+    console.log('get all posts result', result);
+    posts.value = result;
+});
+
+function handleEditPost() {
+    console.log('handleEditPost clicked');
+    
 }
-
-const testPosts = ref(Array.from({ length: 5 }).map((_, i) => ({
-    id: i,
-    author: `author${i}`,
-    content: `content${i}`,
-    postDate: `postDate${i}`,
-})));
 </script>
 
 <style scoped>

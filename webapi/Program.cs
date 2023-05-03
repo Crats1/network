@@ -6,13 +6,14 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using webapi.Data;
+using webapi.Models;
 using webapi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<NetworkAppContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<TokenService, TokenService>();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -49,8 +50,8 @@ builder.Services.AddSwaggerGen(option =>
         }
     });
 });
-/*builder.Services
-    .AddIdentityCore<IdentityUser>(options =>
+builder.Services
+    .AddIdentityCore<ApplicationUser>(options =>
     {
         options.SignIn.RequireConfirmedAccount = false;
         options.Password.RequireDigit = true;
@@ -58,7 +59,8 @@ builder.Services.AddSwaggerGen(option =>
         options.Password.RequireNonAlphanumeric = false;
         options.Password.RequireUppercase = false;
         options.Password.RequireUppercase = false;
-    });*/
+    })
+    .AddEntityFrameworkStores<NetworkAppContext>();
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -76,9 +78,6 @@ builder.Services
 
         };
     });
-System.Diagnostics.Debug.WriteLine("Issuer: " + builder.Configuration["Jwt:Issuer"]);
-System.Diagnostics.Debug.WriteLine("Audience: " + builder.Configuration["Jwt:Audience"]);
-System.Diagnostics.Debug.WriteLine("Key: " + builder.Configuration["Jwt:Key"]);
 
 var app = builder.Build();
 
@@ -88,15 +87,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-
-    var context = services.GetRequiredService<NetworkAppContext>();
-    context.Database.EnsureCreated();
-    DbInitialiser.Initialise(context);
-}
+app.CreateDbIfNotExists();
 
 app.UseHttpsRedirection();
 

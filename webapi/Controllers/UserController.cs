@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using webapi.Data;
+using webapi.Models;
 
 namespace webapi.Controllers;
 
@@ -11,16 +14,33 @@ namespace webapi.Controllers;
 public class UserController : ControllerBase
 {
     private readonly NetworkAppContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public UserController(NetworkAppContext context)
+    public UserController(NetworkAppContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
+    }
+
+    [HttpGet("{userId}")]
+    public ActionResult GetUser(int userId)
+    {
+        return NoContent();
     }
 
     [HttpGet("{userId}/posts")]
-    public ActionResult GetUserPosts(int userId)
+    public async Task<ActionResult<List<PostDTO>>> GetUserPosts(int userId)
     {
-        return NoContent();
+        ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
+        if (user == null)
+        {
+            return BadRequest("Invalid user");
+        }
+        return await _context.Posts
+            .Where(post => post.UserID == userId)
+            .Include(post => post.User)
+            .Select(post => new PostDTO(post, user.Id))
+            .ToListAsync();
     }
 
     [HttpGet("{userId}/followers")]
@@ -29,8 +49,8 @@ public class UserController : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("follow/{id}")]
-    public IActionResult Follow(int id)
+    [HttpPost("{userId}/follow")]
+    public IActionResult Follow(int userId)
     {
         return NoContent();
     }

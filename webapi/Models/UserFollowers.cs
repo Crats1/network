@@ -9,8 +9,8 @@ namespace webapi.Models
         [ForeignKey("UserId")]
         public int FollowerID { get; set; }
 
-        public User? User { get; set; }
+        public ApplicationUser? User { get; set; }
         [ForeignKey("FollowerID")]
-        public User? Follower { get; set; }
+        public ApplicationUser? Follower { get; set; }
     }
 }

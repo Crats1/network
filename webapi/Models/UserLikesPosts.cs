@@ -9,7 +9,7 @@ namespace webapi.Models
         public int PostID { get; set; }
         public bool IsLiked { get; set; } = false;
 
-        public User? User { get; set; }
+        public ApplicationUser? User { get; set; }
         public Post? Post { get; set; }
     }
 }

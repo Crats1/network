@@ -11,6 +11,6 @@ namespace webapi.Models
         public DateTime? UpdatedAt { get; set; }
         public int UserID { get; set; }
 
-        public User? User { get; set; }
+        public ApplicationUser? User { get; set; }
     }
 }

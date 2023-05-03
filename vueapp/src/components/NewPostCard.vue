@@ -6,7 +6,6 @@
                 <textarea
                     v-model="newContent"
                     class="form-control"
-                    id="exampleFormControlTextarea1"
                     rows="3"
                 >
                 </textarea>
@@ -31,6 +30,7 @@ async function handleSubmit(event: Event) {
     event.preventDefault();
     const newPost = await postsService.createPost(newContent.value);
     console.log('new-post-card result:', newPost);
+    newContent.value = "";
     emit('addNewPost', newPost);
     return;
 }

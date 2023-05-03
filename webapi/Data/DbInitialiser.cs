@@ -15,16 +15,24 @@ namespace webapi.Data
             }
             if (context.Users.Any()) context.Database.ExecuteSqlRaw("TRUNCATE TABLE \"Users\" RESTART IDENTITY CASCADE");
 
-            var users = new User[]
+            //var users = new ApplicationUser[]
+            //{
+            //    new ApplicationUser{ Id = 1, UserName="test1", PasswordHash="test" },
+            //    new ApplicationUser{ Id = 2, UserName="test2", PasswordHash="test" },
+            //    new ApplicationUser{ Id = 3, UserName="test3", PasswordHash="test" },
+            //    new ApplicationUser{ Id = 4, UserName="test4", PasswordHash="test" },
+            //    new ApplicationUser{ Id = 5, UserName="test5", PasswordHash="test" },
+            //};
+            var users = new ApplicationUser[]
             {
-                new User{ Username="test1", PasswordHash="test" },
-                new User{ Username="test2", PasswordHash="test" },
-                new User{ Username="test3", PasswordHash="test" },
-                new User{ Username="test4", PasswordHash="test" },
-                new User{ Username="test5", PasswordHash="test" },
+                new ApplicationUser{ UserName="test1" },
+                new ApplicationUser{ UserName="test2" },
+                new ApplicationUser{ UserName="test3" },
+                new ApplicationUser{ UserName="test4" },
+                new ApplicationUser{ UserName="test5" },
             };
 
-            context.Users.AddRange(users);
+            //context.Users.AddRange(users);
             context.SaveChanges();
 
             var posts = new Post[]

@@ -25,15 +25,15 @@ async function createPost(content: string): Promise<Post> {
     return result.json();
 }
 
-async function updatePost(newContent: string): Promise<unknown> {
-    const result = await fetch(URL, {
+async function updatePost(postId: number, content: string): Promise<Post> {
+    const result = await fetch(`${URL}/${postId}`, {
         method: 'PUT',
         headers: {
             "Authorization": getToken(),
             "Accept": "application/json",
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ newContent })
+        body: JSON.stringify({ content })
     });
     console.log('updatePost result:', result);
     return result.json();

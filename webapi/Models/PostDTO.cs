@@ -4,6 +4,16 @@ namespace webapi.Models
 {
     public class PostDTO
     {
+        public PostDTO(Post post, int userId)
+        {
+            ID = post.ID;
+            Content = post.Content;
+            CreatedAt = post.CreatedAt;
+            UpdatedAt = post.UpdatedAt;
+            IsCreatedByUser = userId == post.UserID;
+            Username = post.User.UserName;
+        }
+
         public int ID { get; set; }
         [Required]
         public string Content { get; set; } = string.Empty;

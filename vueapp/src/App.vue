@@ -3,7 +3,6 @@
   <div class="container">
     <router-view/>
   </div>
-  <input v-model="test" type="text" />
 </template>
 
 <script lang="ts" setup>
@@ -13,7 +12,6 @@ import { provide, ref } from 'vue';
 import { userKey } from './keys';
 
 const user = ref<User | null>(null);
-const test = ref<string>("");
 
 function updateUser(newUser: User) {
     console.log('UserProvider updateUser called:', user, newUser);

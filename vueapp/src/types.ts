@@ -12,7 +12,8 @@ export interface LoginResponse {
 export interface Post {
     id: number;
     content: string;
-    createdAt: Date;
-    updatedAt?: Date;
+    createdAt: string;
+    updatedAt?: string;
+    isCreatedByUser: boolean;
     username: string;
 }

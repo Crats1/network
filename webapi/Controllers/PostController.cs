@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
@@ -13,47 +14,36 @@ namespace webapi.Controllers;
 public class PostController : ControllerBase
 {
     private readonly NetworkAppContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public PostController(NetworkAppContext context)
+    public PostController(NetworkAppContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     [HttpGet]
     public async Task<ActionResult<List<PostDTO>>> GetAll()
     {
-        var test = User;
+        var user = await _userManager.FindByNameAsync(User.Identity.Name);
         return await _context.Posts
-            .Select(post => new PostDTO()
-            {
-                ID = post.ID,
-                Content = post.Content,
-                CreatedAt = post.CreatedAt,
-                UpdatedAt = post.UpdatedAt,
-                IsCreatedByUser = false, // TODO
-                Username = post.User != null ? post.User.Username : "",
-            })
+            .Include(post => post.User)
+            .Select(post => new PostDTO(post, user.Id))
             .ToListAsync();
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<PostDTO>> GetPost(int id)
     {
+        ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
         var post = await _context.Posts.FindAsync(id);
         if (post == null) return NotFound();
-        return new PostDTO()
-        {
-            ID = post.ID,
-            Content = post.Content,
-            CreatedAt = post.CreatedAt,
-            UpdatedAt = post.UpdatedAt,
-            IsCreatedByUser = false, // TODO
-            Username = post.User?.Username ?? ""
-        };
+
+        return new PostDTO(post, user.Id);
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
-    public async Task<ActionResult<Post>> CreatePost([Bind("Content", "UserID")] Post post)
+    [HttpPost]
+    public async Task<ActionResult<PostDTO>> CreatePost(PostRequest post)
     {
         try
         {
@@ -61,9 +51,16 @@ public class PostController : ControllerBase
             {
                 return BadRequest();
             }
-            _context.Posts.Add(post);
+            ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var newPost = new Post
+            {
+                Content = post.Content,
+                UserID = user.Id
+            };
+
+            _context.Posts.Add(newPost);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetPost), new { id = post.ID }, post); // TODO
+            return CreatedAtAction(nameof(GetPost), new { id = newPost.ID }, new PostDTO(newPost, user.Id));
         }
         catch (DbUpdateException)
         {
@@ -72,24 +69,25 @@ public class PostController : ControllerBase
         }
     }
 
-    [HttpPut("{id}"), ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdatePost(int id, Post post)
+    [HttpPut("{postId}")]
+    public async Task<ActionResult<PostDTO>> UpdatePost(int postId, Post post)
     {
-        if (id != post.ID)
+        ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
+        Post? postToUpdate = await _context.Posts.FindAsync(postId);
+        if (postToUpdate is null)
         {
             return BadRequest();
         }
-
-        try
+        else if (postToUpdate.UserID != user.Id)
         {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            throw;
+            return Unauthorized();
         }
 
-        return NoContent();
+        postToUpdate.Content = post.Content;
+        postToUpdate.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetPost), new { id = postToUpdate.ID }, new PostDTO(postToUpdate, user.Id));
     }
 
     [HttpGet("{id}/likes")]

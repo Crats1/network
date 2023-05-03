@@ -18,12 +18,12 @@ public class TokenService
         _config = config;
     }
 
-    public string CreateToken(User user)
+    public (string, DateTime) CreateToken(ApplicationUser user)
     {
         DateTime expiration = DateTime.UtcNow.AddMinutes(EXPIRATION_MINUTES);
         JwtSecurityToken token = CreateJwtToken(CreateClaims(user), CreateSigningCredentials(), expiration);
         JwtSecurityTokenHandler tokenHandler = new();
-        return tokenHandler.WriteToken(token);
+        return (tokenHandler.WriteToken(token), expiration);
     }
 
     private JwtSecurityToken CreateJwtToken(List<Claim> claims, SigningCredentials credentials, DateTime expiration)
@@ -31,7 +31,7 @@ public class TokenService
         return new(_config["Jwt:Issuer"], _config["Jwt:Issuer"], claims, expires: expiration, signingCredentials: credentials);
     }
 
-    private List<Claim> CreateClaims(User user)
+    private List<Claim> CreateClaims(ApplicationUser user)
     {
         try
         {
@@ -40,8 +40,8 @@ public class TokenService
                 new Claim(JwtRegisteredClaimNames.Sub, "TokenForTheApiWithAuth"),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)),
-                new Claim(ClaimTypes.NameIdentifier, user.ID.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName),
             };
             return claims;
         }

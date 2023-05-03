@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using webapi.Data;
 using webapi.Models;
@@ -12,62 +13,70 @@ namespace webapi.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly NetworkAppContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly TokenService _tokenService;
 
-    public AuthController(NetworkAppContext context, TokenService tokenService)
+    public AuthController(NetworkAppContext context, UserManager<ApplicationUser> userManager, TokenService tokenService)
     {
         _context = context;
+        _userManager = userManager;
         _tokenService = tokenService;
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login(AuthRequest request)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            User? user = await _context.Users.SingleOrDefaultAsync(user => user.Username == request.Username);
-            if (user == null || user.PasswordHash != request.Password)
-            {
-                return BadRequest("Bad credentials");
-            }
-
-            var token = _tokenService.CreateToken(user);
-
-            return Ok(new AuthResponse
-            { 
-                ID = user.ID,
-                Username = user.Username,
-                Token = token
-            });
+            return BadRequest(ModelState);
         }
-        catch (Exception ex)
+
+        ApplicationUser? managedUser = await _userManager.FindByNameAsync(request.Username);
+        var invalidResponse = BadRequest("Username or password was incorrect");
+        if (managedUser == null)
         {
-            return BadRequest($"Failed to login {ex.Message}");
+            return invalidResponse;
         }
+
+        bool isPasswordValid = await _userManager.CheckPasswordAsync(managedUser, request.Password);
+        if (!isPasswordValid)
+        {
+            return invalidResponse;
+        }
+
+        (string token, DateTime expiresIn) = _tokenService.CreateToken(managedUser);
+        return Ok(new AuthResponse
+        { 
+            ID = managedUser.Id,
+            Username = managedUser.UserName ?? "",
+            Token = token,
+            ExpiresIn = expiresIn
+        });
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register(AuthRequest request)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            _context.Users.Add(new User { Username = request.Username, PasswordHash = request.Password });
-            await _context.SaveChangesAsync();
-            request.Password = "";
-            return CreatedAtAction(nameof(Register), new { Username = request.Username }, request);
-        } catch (Exception ex)
-        {
-            return BadRequest(ex);
+            return BadRequest(ModelState);
         }
+
+        var result = await _userManager.CreateAsync(
+            new ApplicationUser { UserName = request.Username },
+            request.Password
+        );
+
+        if (result.Succeeded)
+        {
+            request.Password = "";
+            return CreatedAtAction(nameof(Register), new { UserName = request.Username }, request);
+        }
+
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(error.Code, error.Description);
+        }
+        return BadRequest(ModelState);
     }
 }
