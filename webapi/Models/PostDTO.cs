@@ -12,6 +12,8 @@ namespace webapi.Models
             UpdatedAt = post.UpdatedAt;
             IsCreatedByUser = userId == post.UserID;
             Username = post.User.UserName;
+            IsLikedByUser = post.UserLikesPosts.FirstOrDefault(entry => entry.UserID == userId) != null;
+            Likes = post.UserLikesPosts.Count();
         }
 
         public int ID { get; set; }
@@ -19,8 +21,9 @@ namespace webapi.Models
         public string Content { get; set; } = null!;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
-
         public bool IsCreatedByUser { get; set; }
         public string Username { get; set; } = null!;
+        public bool IsLikedByUser { get; set; }
+        public int Likes { get; set; }
     }
 }

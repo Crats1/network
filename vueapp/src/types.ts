@@ -9,6 +9,12 @@ export interface LoginResponse {
     token: string;
 }
 
+export interface UserLikesPosts {
+    userId: number;
+    postId: number;
+    isLiked: boolean;
+}
+
 export interface Post {
     id: number;
     content: string;
@@ -16,4 +22,6 @@ export interface Post {
     updatedAt?: string;
     isCreatedByUser: boolean;
     username: string;
+    isLikedByUser: boolean;
+    likes: number;
 }

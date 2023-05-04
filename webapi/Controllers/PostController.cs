@@ -28,6 +28,7 @@ public class PostController : ControllerBase
         ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
         return await _context.Posts
             .Include(post => post.User)
+            .Include(post => post.UserLikesPosts)
             .Select(post => new PostDTO(post, user.Id))
             .ToListAsync();
     }
@@ -91,7 +92,7 @@ public class PostController : ControllerBase
     }
 
     [HttpGet("{postId}/likes")]
-    public async Task<ActionResult<int>> GetLikes(int postId)
+    public async Task<ActionResult<List<UserLikesPosts>>> GetLikes(int postId)
     {
         ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
         Post? post = await _context.Posts.FirstOrDefaultAsync(post => post.ID == postId);
@@ -100,10 +101,10 @@ public class PostController : ControllerBase
             return NotFound();
         }
 
-        int numLikes = _context.UsersLikesPosts
+        var result = await _context.UsersLikesPosts
             .Where(entry => entry.PostID == post.ID)
-            .Count();
-        return numLikes;
+            .ToListAsync();
+        return result;
     }
 
     [HttpPost("{postId}/likes")]
@@ -118,7 +119,7 @@ public class PostController : ControllerBase
             return NotFound();
         }
 
-        UserLikesPosts? hasUserLikedPost = await _context.UsersLikesPosts.FirstOrDefaultAsync(entry => entry.UserID == user.Id);
+        UserLikesPosts? hasUserLikedPost = await _context.UsersLikesPosts.FirstOrDefaultAsync(entry => entry.PostID == postId && entry.UserID == user.Id);
         if (hasUserLikedPost == null)
         {
             await _context.UsersLikesPosts.AddAsync(new UserLikesPosts { UserID = user.Id, PostID = post.ID, IsLiked = true });
@@ -139,7 +140,7 @@ public class PostController : ControllerBase
             return NotFound();
         }
 
-        UserLikesPosts? userLikedPost = await _context.UsersLikesPosts.FirstOrDefaultAsync(entry => entry.UserID == user.Id);
+        UserLikesPosts? userLikedPost = await _context.UsersLikesPosts.FirstOrDefaultAsync(entry => entry.PostID == postId && entry.UserID == user.Id);
         if (userLikedPost != null)
         {
             _context.UsersLikesPosts.Remove(userLikedPost);

@@ -1,4 +1,4 @@
-import { Post } from "@/types";
+import { Post, UserLikesPosts } from "@/types";
 import { getToken } from "./token";
 
 const URL = `/api/post`;
@@ -39,9 +39,20 @@ async function updatePost(postId: number, content: string): Promise<Post> {
     return result.json();
 }
 
-async function likePost(postId: number): Promise<unknown> {
-    const result = await fetch(`URL/${postId}`, {
-        method: 'PUT',
+async function getPostLikes(postId: number): Promise<UserLikesPosts[]> {
+    const result = await fetch(`${URL}/${postId}/likes`, {
+        method: 'GET',
+        headers: {
+            "Authorization": getToken(),
+        },
+    });
+    console.log('getPostLIkes result:', result);
+    return result.json();
+}
+
+async function likePost(postId: number): Promise<number> {
+    const result = await fetch(`${URL}/${postId}/likes`, {
+        method: 'POST',
         headers: {
             "Authorization": getToken(),
         },
@@ -50,9 +61,23 @@ async function likePost(postId: number): Promise<unknown> {
     return result.json();
 }
 
+async function unlikePost(postId: number): Promise<number> {
+    const result = await fetch(`${URL}/${postId}/likes`, {
+        method: 'DELETE',
+        headers: {
+            "Authorization": getToken(),
+        },
+    });
+    console.log('deletePost result:', result);
+    return result.json();
+}
+
+
 export default {
     getAllPosts,
     createPost,
     updatePost,
+    getPostLikes,
     likePost,
+    unlikePost,
 };

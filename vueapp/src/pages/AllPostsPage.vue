@@ -12,6 +12,8 @@
                 :updated-at="post.updatedAt"
                 :is-created-by-user="post.isCreatedByUser"
                 :username="post.username"
+                :is-liked-by-user="post.isLikedByUser"
+                :likes="post.likes"
             />
         </div>
     </div>

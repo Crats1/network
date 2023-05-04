@@ -23,8 +23,9 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("me")]
-    public ActionResult GetMe()
+    public async Task<ActionResult<UserDTO>> GetMe()
     {
+        ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
         return NoContent();
     }
 
