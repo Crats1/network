@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Microsoft.AspNetCore.Identity;
+using webapi.Models;
 
 namespace webapi.Data;
 
@@ -10,9 +11,10 @@ public static class Extensions
         {
             var services = scope.ServiceProvider;
 
-            var context = services.GetRequiredService<NetworkAppContext>();
+            NetworkAppContext context = services.GetRequiredService<NetworkAppContext>();
             context.Database.EnsureCreated();
-            //DbInitialiser.Initialise(context);
+            UserManager<ApplicationUser> userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+            DbInitialiser.Initialise(context, userManager);
         }
     }
 }
