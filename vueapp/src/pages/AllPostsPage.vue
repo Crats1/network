@@ -11,6 +11,7 @@
                 :created-at="post.createdAt"
                 :updated-at="post.updatedAt"
                 :is-created-by-user="post.isCreatedByUser"
+                :user-id="post.userId"
                 :username="post.username"
                 :is-liked-by-user="post.isLikedByUser"
                 :likes="post.likes"
@@ -36,7 +37,7 @@ watchEffect(async () => {
 
 function addNewPost(newPost: Post) {
     console.log('all posts page addNewPost', newPost);
-    posts.value.push(newPost);
+    posts.value.unshift(newPost)
 }
 
 function handleEditPost(editedPost: Post) {

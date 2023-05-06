@@ -28,9 +28,10 @@ const routes: Array<RouteRecordRaw> = [
     component: FollowingPage,
   },
   {
-    path: '/profile',
+    path: '/profile/:userId',
     name: 'profile',
     component: ProfilePage,
+    props: (route) => ({ userId: Number(route.params.userId) || undefined }),
   },
 ];
 

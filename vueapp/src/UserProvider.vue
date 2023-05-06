@@ -7,21 +7,15 @@ import { provide, ref } from 'vue';
 import { userKey } from './keys';
 import { User } from './types';
 
-const user = ref<User | null>(null);
+const user = ref<User>();
 
-function updateUser(newUser: User) {
+function updateUser(newUser: User | undefined) {
     console.log('UserProvider updateUser called:', user, newUser);
     user.value = newUser;
-}
-
-function clearUser() {
-    console.log('UserProvider clearUser called:', user);
-    user.value = null;
 }
 
 provide(userKey, {
     user,
     updateUser,
-    clearUser,
 });
 </script>

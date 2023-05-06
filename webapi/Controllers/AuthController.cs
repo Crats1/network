@@ -48,7 +48,7 @@ public class AuthController : ControllerBase
         return Ok(new AuthResponse
         { 
             ID = managedUser.Id,
-            Username = managedUser.UserName ?? "",
+            UserName = managedUser.UserName ?? "",
             Token = token,
             ExpiresIn = expiresIn
         });

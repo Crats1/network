@@ -1,8 +1,12 @@
 <template>
     <div class="card">
         <div class="card-body">
-            <h4 class="card-title">{{ username }}</h4>
-            <a v-if="isCreatedByUser && !isEditing" @click="toggleEdit" href="#" class="edit-btn">Edit</a>
+            <h4 class="card-title">
+                <router-link class="nav-link" :to="`/profile/${userId}`">
+                    <a class="no-decoration">{{ username }}</a>
+                </router-link>
+            </h4>
+            <a v-if="isCreatedByUser && !isEditing" @click="toggleEdit" href="#" class="no-decoration">Edit</a>
             <p v-if="!isEditing" class="card-text content">{{ content }}</p>
             <div v-else class="mb-3">
                 <textarea
@@ -53,6 +57,7 @@ const props = defineProps<{
     createdAt: string;
     updatedAt?: string;
     isCreatedByUser: boolean;
+    userId: number;
     username: string;
     isLikedByUser: boolean;
     likes: number;
@@ -98,7 +103,7 @@ async function handleLike(isLikedByUser: boolean) {
 </script>
 
 <style scoped>
-.edit-btn {
+.no-decoration {
     text-decoration: none;
 }
 

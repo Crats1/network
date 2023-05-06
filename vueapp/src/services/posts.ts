@@ -8,7 +8,15 @@ async function getAllPosts(): Promise<Post[]> {
         headers: {
             "Authorization": getToken(),
         },
-    })).json()
+    })).json();
+}
+
+async function getFollowedUsersPosts(): Promise<Post[]> {
+    return await (await fetch(`${URL}/followed`, {
+        headers: {
+            "Authorization": getToken(),
+        },
+    })).json();
 }
 
 async function createPost(content: string): Promise<Post> {
@@ -75,6 +83,7 @@ async function unlikePost(postId: number): Promise<number> {
 
 export default {
     getAllPosts,
+    getFollowedUsersPosts,
     createPost,
     updatePost,
     getPostLikes,

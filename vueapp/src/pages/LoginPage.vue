@@ -33,7 +33,7 @@ async function onSubmit(event: Event) {
         addToken(result.token);
         userProvider?.updateUser({
             id: result.id,
-            username: result.username,
+            userName: result.userName,
         });
         router.push({ path: '/' });
     }

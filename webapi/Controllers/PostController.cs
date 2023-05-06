@@ -33,6 +33,24 @@ public class PostController : ControllerBase
             .ToListAsync();
     }
 
+    [HttpGet("followed")]
+    public async Task<ActionResult<List<PostDTO>>> GetFollowedUsersPosts()
+    {
+        ApplicationUser? user = await _context.Users
+            .Include(user => user.Follows)
+            .ThenInclude(followedUser => followedUser.User)
+            .ThenInclude(followedUser => followedUser.Posts)
+            .ThenInclude(post => post.UserLikesPosts)
+            .FirstOrDefaultAsync(user => user.UserName == User.Identity.Name);
+
+        IEnumerable<ApplicationUser> followedUsers = user.Follows.Select(e => e.User);
+        List<PostDTO> followedUsersPosts = followedUsers
+            .SelectMany(e => e.Posts)
+            .Select(post => new PostDTO(post, user.Id))
+            .ToList();
+        return followedUsersPosts;
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<PostDTO>> GetPost(int id)
     {
@@ -53,7 +71,7 @@ public class PostController : ControllerBase
                 return BadRequest();
             }
             ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
-            Post newPost = new Post
+            Post newPost = new()
             {
                 Content = post.Content,
                 UserID = user.Id
@@ -125,7 +143,7 @@ public class PostController : ControllerBase
             await _context.UsersLikesPosts.AddAsync(new UserLikesPosts { UserID = user.Id, PostID = post.ID, IsLiked = true });
             _context.SaveChanges();
         }
-        return post.UserLikesPosts.Count();
+        return post.UserLikesPosts.Count;
     }
 
     [HttpDelete("{postId}/likes")]
@@ -146,6 +164,6 @@ public class PostController : ControllerBase
             _context.UsersLikesPosts.Remove(userLikedPost);
             _context.SaveChanges();
         }
-        return post.UserLikesPosts.Count();
+        return post.UserLikesPosts.Count;
     }
 }

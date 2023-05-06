@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using webapi.Data;
 using webapi.Models;
 
@@ -26,13 +27,26 @@ public class UserController : ControllerBase
     public async Task<ActionResult<UserDTO>> GetMe()
     {
         ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
-        return NoContent();
+        return new UserDTO(user);
     }
 
     [HttpGet("{userId}")]
-    public ActionResult GetUser(int userId)
+    public async Task<ActionResult<UserDTO>> GetUser(int userId)
     {
-        return NoContent();
+        ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
+        ApplicationUser? fetchedUser = await _context.Users
+            .Include(e => e.Followers)
+            .Include(e => e.Follows)
+            .FirstOrDefaultAsync(e => e.Id == userId);
+        if (fetchedUser == null)
+        {
+            return NotFound();
+        }
+
+        return new UserDTO(fetchedUser)
+        {
+            IsFollowing = user.Follows.FirstOrDefault(e => e.UserID == fetchedUser.Id) != null
+        };
     }
 
     [HttpGet("{userId}/posts")]
@@ -46,25 +60,40 @@ public class UserController : ControllerBase
         return await _context.Posts
             .Where(post => post.UserID == userId)
             .Include(post => post.User)
+            .Include(post => post.UserLikesPosts)
             .Select(post => new PostDTO(post, user.Id))
             .ToListAsync();
     }
 
-    [HttpGet("{userId}/followers")]
-    public ActionResult GetUserFollowers(int userId)
-    {
-        return NoContent();
-    }
 
     [HttpPost("{userId}/follow")]
-    public IActionResult Follow(int userId)
+    public async Task<IActionResult> Follow(int userId)
     {
-        return NoContent();
+        ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
+        ApplicationUser? toFollow = await _userManager.FindByIdAsync(userId.ToString());
+        if (toFollow == null)
+        {
+            return NotFound();
+        }
+
+        await _context.UserFollowers.AddAsync(new UserFollowers { UserID = toFollow.Id, FollowerID = user.Id });
+        _context.SaveChanges();
+        return Ok();
     }
 
     [HttpDelete("{userId}/follow")]
-    public IActionResult Unfollow(int userId)
+    public async Task<IActionResult> Unfollow(int userId)
     {
-        return NoContent();
+        ApplicationUser? followingUser = await _userManager.FindByNameAsync(User.Identity.Name);
+        UserFollowers? followedUser = _context.UserFollowers.FirstOrDefault(e => e.UserID == userId && e.FollowerID == followingUser.Id);
+        if (followedUser == null)
+        {
+            return NotFound();
+        }
+
+        _context.UserFollowers.Remove(followedUser);
+        _context.SaveChanges();
+
+        return Ok();
     }
 }

@@ -1,11 +1,17 @@
 export interface User {
     id: number;
-    username: string;
+    userName: string;
+}
+
+export interface UserInfo extends User {
+    followerCount: number;
+    followingCount: number;
+    isFollowing: boolean;
 }
 
 export interface LoginResponse {
     id: number;
-    username: string;
+    userName: string;
     token: string;
 }
 
@@ -21,6 +27,7 @@ export interface Post {
     createdAt: string;
     updatedAt?: string;
     isCreatedByUser: boolean;
+    userId: number;
     username: string;
     isLikedByUser: boolean;
     likes: number;

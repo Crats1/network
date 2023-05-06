@@ -8,25 +8,37 @@
 <script lang="ts" setup>
 import NavBar from '@/components/NavBar.vue';
 import { User } from './types';
-import { provide, ref } from 'vue';
+import { onBeforeMount, onMounted, provide, ref } from 'vue';
 import { userKey } from './keys';
+import { isAuthenticated } from './services/token';
+import userService from './services/user';
 
-const user = ref<User | null>(null);
+const user = ref<User>();
 
-function updateUser(newUser: User) {
+onBeforeMount(async () => {
+    if (isAuthenticated()) {
+        const userInfo = await userService.getMe();
+        console.log('app onMounted user:', { user });
+        user.value = {
+            id: userInfo.id,
+            userName: userInfo.userName
+        };
+        console.log('app onMounted user:', { user, userInfo });
+    }
+});
+
+function updateUser(newUser: User | undefined) {
     console.log('UserProvider updateUser called:', user, newUser);
     user.value = newUser;
-}
-
-function clearUser() {
-    console.log('UserProvider clearUser called:', user);
-    user.value = null;
 }
 
 provide(userKey, {
     user,
     updateUser,
-    clearUser,
+});
+
+onMounted(() => {
+
 });
 
 console.log('App rerendered');
