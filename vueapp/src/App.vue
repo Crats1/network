@@ -10,20 +10,26 @@ import NavBar from '@/components/NavBar.vue';
 import { User } from './types';
 import { onBeforeMount, onMounted, provide, ref } from 'vue';
 import { userKey } from './keys';
-import { isAuthenticated } from './services/token';
+import { removeToken } from './services/token';
 import userService from './services/user';
+import { useRouter } from 'vue-router';
 
 const user = ref<User>();
+const router = useRouter();
 
 onBeforeMount(async () => {
-    if (isAuthenticated()) {
+    try {
         const userInfo = await userService.getMe();
-        console.log('app onMounted user:', { user });
+        console.log('app onMounted user:', { user, userInfo });
         user.value = {
             id: userInfo.id,
             userName: userInfo.userName
         };
         console.log('app onMounted user:', { user, userInfo });
+    } catch (error) {
+        user.value = undefined;
+        removeToken();
+        router.push('/login');
     }
 });
 

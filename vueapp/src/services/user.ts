@@ -1,4 +1,4 @@
-import { Post, UserInfo } from "@/types";
+import { Post, PostSortOrders, UserInfo } from "@/types";
 import { getToken } from "./token";
 
 const URL = `/api/user`;
@@ -21,8 +21,11 @@ async function getUserInfo(userId: number): Promise<UserInfo> {
     return result.json();
 }
 
-async function getUserPosts(userId: number): Promise<Post[]> {
-    const result = await fetch(`${URL}/${userId}/posts`, {
+async function getUserPosts(userId: number, sortOrder?: PostSortOrders): Promise<Post[]> {
+    const params = sortOrder
+        ? `?${new URLSearchParams({ sortOrder })}`
+        : '';
+    const result = await fetch(`${URL}/${userId}/posts${params}`, {
         headers: {
             "Authorization": getToken(),
         },
@@ -31,7 +34,7 @@ async function getUserPosts(userId: number): Promise<Post[]> {
 }
 
 async function followUser(userId: number): Promise<void> {
-    const result = await fetch(`${URL}/${userId}/follow`, {
+    await fetch(`${URL}/${userId}/follow`, {
         method: "POST",
         headers: {
             "Authorization": getToken(),
@@ -40,7 +43,7 @@ async function followUser(userId: number): Promise<void> {
 }
 
 async function unfollowUser(userId: number): Promise<void> {
-    const result = await fetch(`${URL}/${userId}/follow`, {
+    await fetch(`${URL}/${userId}/follow`, {
         method: "DELETE",
         headers: {
             "Authorization": getToken(),

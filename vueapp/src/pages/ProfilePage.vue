@@ -20,6 +20,15 @@
     </div>
     <h3>{{ isMe ? "Your" : "Their" }} posts</h3>
     <div class="d-flex flex-column gap-3 mt-3">
+        <div>
+            <label for="postSortOrder">Sort posts by:</label>
+            <select v-model="sortOrder" class="form-select" id="postSortOrder">
+                <option :value="PostSortOrders.DATE_DESC">Date descending</option>
+                <option :value="PostSortOrders.DATE_ASC">Date ascending</option>
+                <option :value="PostSortOrders.LIKES_DESC">Likes descending</option>
+                <option :value="PostSortOrders.LIKES_ASC">Likes ascending</option>
+            </select>
+        </div>
         <PostCard
             v-for="post in posts"
             :key="post.id"
@@ -39,7 +48,7 @@
 
 <script lang="ts" setup>
 import PostCard from '@/components/PostCard.vue';
-import { Post, UserInfo } from '@/types';
+import { Post, PostSortOrders, UserInfo } from '@/types';
 import { computed, inject, ref, watchEffect } from 'vue';
 import userService from '@/services/user';
 import { userKey } from '@/keys';
@@ -50,6 +59,7 @@ const props = defineProps<{
 
 const userInfo = ref<UserInfo>();
 const posts = ref<Post[]>([]);
+const sortOrder = ref<PostSortOrders>(PostSortOrders.DATE_DESC);
 const userProvider = inject(userKey);
 const isMe = computed(() => userProvider?.user.value.id === props.userId);
 
@@ -57,7 +67,10 @@ watchEffect(async () => {
     const fetchedUserInfo = await userService.getUserInfo(props.userId);
     userInfo.value = fetchedUserInfo;
     console.log('get user info result', fetchedUserInfo);
-    const userPosts = await userService.getUserPosts(props.userId);
+});
+
+watchEffect(async () => {
+    const userPosts = await userService.getUserPosts(props.userId, sortOrder.value);
     console.log('get all posts result', userPosts);
     posts.value = userPosts;
 });

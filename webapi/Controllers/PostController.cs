@@ -16,25 +16,29 @@ public class PostController : ControllerBase
     private readonly NetworkAppContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
 
+
     public PostController(NetworkAppContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
         _userManager = userManager;
     }
 
+
     [HttpGet]
-    public async Task<ActionResult<List<PostDTO>>> GetAll()
+    public async Task<ActionResult<List<PostDTO>>> GetAll(string? sortOrder)
     {
         ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
-        return await _context.Posts
+        IQueryable<PostDTO> posts = _context.Posts
             .Include(post => post.User)
             .Include(post => post.UserLikesPosts)
-            .Select(post => new PostDTO(post, user.Id))
-            .ToListAsync();
+            .Select(post => new PostDTO(post, user.Id));
+
+        var sortedPosts = Util.SortPosts(posts, sortOrder);
+        return sortedPosts.ToList();
     }
 
     [HttpGet("followed")]
-    public async Task<ActionResult<List<PostDTO>>> GetFollowedUsersPosts()
+    public async Task<ActionResult<List<PostDTO>>> GetFollowedUsersPosts(string? sortOrder)
     {
         ApplicationUser? user = await _context.Users
             .Include(user => user.Follows)
@@ -44,11 +48,12 @@ public class PostController : ControllerBase
             .FirstOrDefaultAsync(user => user.UserName == User.Identity.Name);
 
         IEnumerable<ApplicationUser> followedUsers = user.Follows.Select(e => e.User);
-        List<PostDTO> followedUsersPosts = followedUsers
+        IEnumerable<PostDTO> followedUsersPosts = followedUsers
             .SelectMany(e => e.Posts)
-            .Select(post => new PostDTO(post, user.Id))
-            .ToList();
-        return followedUsersPosts;
+            .Select(post => new PostDTO(post, user.Id));
+
+        var sortedPosts = Util.SortPosts(followedUsersPosts, sortOrder);
+        return sortedPosts.ToList();
     }
 
     [HttpGet("{id}")]

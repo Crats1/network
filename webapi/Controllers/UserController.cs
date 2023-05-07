@@ -50,19 +50,20 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{userId}/posts")]
-    public async Task<ActionResult<List<PostDTO>>> GetUserPosts(int userId)
+    public async Task<ActionResult<List<PostDTO>>> GetUserPosts(int userId, string? sortOrder)
     {
         ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
         if (user == null)
         {
             return BadRequest("Invalid user");
         }
-        return await _context.Posts
+        var posts = _context.Posts
             .Where(post => post.UserID == userId)
             .Include(post => post.User)
             .Include(post => post.UserLikesPosts)
-            .Select(post => new PostDTO(post, user.Id))
-            .ToListAsync();
+            .Select(post => new PostDTO(post, user.Id));
+        var sortedPosts = Util.SortPosts(posts, sortOrder);
+        return sortedPosts.ToList();
     }
 
 

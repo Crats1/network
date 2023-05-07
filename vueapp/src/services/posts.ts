@@ -3,20 +3,26 @@ import { getToken } from "./token";
 
 const URL = `/api/post`;
 
-async function getAllPosts(): Promise<Post[]> {
-    return await (await fetch(URL, {
-        headers: {
-            "Authorization": getToken(),
-        },
-    })).json();
+function getParam(sortOrder?: string): string {
+    return sortOrder ? `?${new URLSearchParams({ sortOrder })}` : '';
 }
 
-async function getFollowedUsersPosts(): Promise<Post[]> {
-    return await (await fetch(`${URL}/followed`, {
+async function getAllPosts(sortOrder?: string): Promise<Post[]> {
+    const result = await fetch(`${URL}${getParam(sortOrder)}`, {
         headers: {
             "Authorization": getToken(),
         },
-    })).json();
+    });
+    return result.json();
+}
+
+async function getFollowedUsersPosts(sortOrder?: string): Promise<Post[]> {
+    const result = await fetch(`${URL}/followed${getParam(sortOrder)}`, {
+        headers: {
+            "Authorization": getToken(),
+        },
+    });
+    return result.json();
 }
 
 async function createPost(content: string): Promise<Post> {

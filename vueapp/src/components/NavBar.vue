@@ -26,7 +26,7 @@
 
 <script lang="ts" setup>
 import { userKey } from '@/keys';
-import { isAuthenticated, removeToken } from '@/services/token';
+import { removeToken } from '@/services/token';
 import { computed, inject } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -34,7 +34,6 @@ const router = useRouter();
 const userProvider = inject(userKey);
 
 console.log('navbar userProvider:', { userProvider });
-const profileRouteId = computed(() => userProvider?.user.value.id);
 
 function logout() {
     removeToken();

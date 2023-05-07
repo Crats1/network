@@ -3,8 +3,19 @@
         <h1>All Posts</h1>
         <NewPostCard @add-new-post="addNewPost" />
         <p v-if="posts.length === 0">Nothing posted yet</p>
-        <div v-for="post in posts" :key="post.id">
+        <div v-else class="d-flex flex-column gap-3 mt-3">
+            <div>
+                <label for="postSortOrder">Sort posts by:</label>
+                <select v-model="sortOrder" class="form-select" id="postSortOrder">
+                    <option :value="PostSortOrders.DATE_DESC">Date descending</option>
+                    <option :value="PostSortOrders.DATE_ASC">Date ascending</option>
+                    <option :value="PostSortOrders.LIKES_DESC">Likes descending</option>
+                    <option :value="PostSortOrders.LIKES_ASC">Likes ascending</option>
+                </select>
+            </div>
             <PostCard
+                v-for="post in posts"
+                :key="post.id"
                 @edit-post="handleEditPost"
                 :id="post.id"
                 :content="post.content"
@@ -23,15 +34,16 @@
 <script lang="ts" setup>
 import NewPostCard from '@/components/NewPostCard.vue';
 import PostCard from '@/components/PostCard.vue';
-import { Post } from '@/types';
+import { Post, PostSortOrders } from '@/types';
 import { ref, watchEffect } from 'vue';
 import postsServices from '@/services/posts';
 
 const posts = ref<Post[]>([]);
+const sortOrder = ref<PostSortOrders>(PostSortOrders.DATE_DESC);
 
 watchEffect(async () => {
-    const result = await postsServices.getAllPosts();
-    console.log('get all posts result', result);
+    const result = await postsServices.getAllPosts(sortOrder.value);
+    console.log('get all posts result', result, posts.value);
     posts.value = result;
 });
 
