@@ -1,3 +1,10 @@
+export interface PaginatedList<T> {
+    offset: number;
+    limit: number;
+    totalItems: number;
+    items: T[];
+}
+
 export interface User {
     id: number;
     userName: string;
@@ -34,8 +41,8 @@ export interface Post {
 }
 
 export enum PostSortOrders {
-    LIKES_ASC = "likes_asc",
-    LIKES_DESC = "likes_desc",
     DATE_ASC = "date_asc",
     DATE_DESC = "date_desc",
+    LIKES_ASC = "likes_asc",
+    LIKES_DESC = "likes_desc",
 }

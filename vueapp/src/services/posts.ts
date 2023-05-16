@@ -1,14 +1,18 @@
-import { Post, UserLikesPosts } from "@/types";
+import { PaginatedList, Post, UserLikesPosts } from "@/types";
 import { getToken } from "./token";
 
 const URL = `/api/post`;
 
-function getParam(sortOrder?: string): string {
-    return sortOrder ? `?${new URLSearchParams({ sortOrder })}` : '';
+function getParams(args: Record<string, string | number | undefined>): string {
+    const definedArgkeys = Object.keys(args).filter((key) => args[key] !== undefined);
+    const definedArgs = definedArgkeys.reduce((acc, key) => ({ ...acc, [key]: args[key] as string }), {});
+    return args
+        ? `?${new URLSearchParams(definedArgs)}`
+        : '';
 }
 
-async function getAllPosts(sortOrder?: string): Promise<Post[]> {
-    const result = await fetch(`${URL}${getParam(sortOrder)}`, {
+async function getAllPosts(sortOrder?: string, limit?: number, offset?: number): Promise<PaginatedList<Post>> {
+    const result = await fetch(`${URL}${getParams({ sortOrder, limit, offset })}`, {
         headers: {
             "Authorization": getToken(),
         },
@@ -16,8 +20,8 @@ async function getAllPosts(sortOrder?: string): Promise<Post[]> {
     return result.json();
 }
 
-async function getFollowedUsersPosts(sortOrder?: string): Promise<Post[]> {
-    const result = await fetch(`${URL}/followed${getParam(sortOrder)}`, {
+async function getFollowedUsersPosts(sortOrder?: string, limit?: number, offset?: number): Promise<PaginatedList<Post>> {
+    const result = await fetch(`${URL}/followed${getParams({ sortOrder, limit, offset })}`, {
         headers: {
             "Authorization": getToken(),
         },
@@ -88,6 +92,7 @@ async function unlikePost(postId: number): Promise<number> {
 
 
 export default {
+    getParams,
     getAllPosts,
     getFollowedUsersPosts,
     createPost,

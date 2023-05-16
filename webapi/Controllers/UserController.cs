@@ -14,6 +14,7 @@ namespace webapi.Controllers;
 [Route("api/[controller]")]
 public class UserController : ControllerBase
 {
+    private const int PAGINATION_LIMIT = 10;
     private readonly NetworkAppContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
 
@@ -50,7 +51,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{userId}/posts")]
-    public async Task<ActionResult<List<PostDTO>>> GetUserPosts(int userId, string? sortOrder)
+    public async Task<ActionResult<PaginatedList<PostDTO>>> GetUserPosts(int userId, string? sortOrder, int limit = PAGINATION_LIMIT, int offset = 0)
     {
         ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
         if (user == null)
@@ -63,9 +64,9 @@ public class UserController : ControllerBase
             .Include(post => post.UserLikesPosts)
             .Select(post => new PostDTO(post, user.Id));
         var sortedPosts = Util.SortPosts(posts, sortOrder);
-        return sortedPosts.ToList();
+        var paginatedPosts = PaginatedList<PostDTO>.CreateAsync(sortedPosts, limit, offset);
+        return paginatedPosts;
     }
-
 
     [HttpPost("{userId}/follow")]
     public async Task<IActionResult> Follow(int userId)

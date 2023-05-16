@@ -6,16 +6,12 @@ public static class Util
 {
     public static IEnumerable<PostDTO> SortPosts(IEnumerable<PostDTO> posts, string? sortOrder)
     {
-        switch (sortOrder)
+        return sortOrder switch
         {
-            case "likes_asc":
-                return posts.OrderBy(post => post.Likes);
-            case "likes_desc":
-                return posts.OrderByDescending(post => post.Likes);
-            case "date_asc":
-                return posts.OrderBy(post => post.UpdatedAt ?? post.CreatedAt);
-            default:
-                return posts.OrderByDescending(post => post.UpdatedAt ?? post.CreatedAt);
-        }
+            "likes_asc" => posts.OrderBy(post => post.Likes),
+            "likes_desc" => posts.OrderByDescending(post => post.Likes),
+            "date_asc" => posts.OrderBy(post => post.UpdatedAt ?? post.CreatedAt),
+            _ => posts.OrderByDescending(post => post.UpdatedAt ?? post.CreatedAt),
+        };
     }
 }

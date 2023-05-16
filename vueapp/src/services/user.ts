@@ -1,5 +1,6 @@
-import { Post, PostSortOrders, UserInfo } from "@/types";
+import { PaginatedList, Post, PostSortOrders, UserInfo } from "@/types";
 import { getToken } from "./token";
+import postsService from './posts';
 
 const URL = `/api/user`;
 
@@ -21,10 +22,8 @@ async function getUserInfo(userId: number): Promise<UserInfo> {
     return result.json();
 }
 
-async function getUserPosts(userId: number, sortOrder?: PostSortOrders): Promise<Post[]> {
-    const params = sortOrder
-        ? `?${new URLSearchParams({ sortOrder })}`
-        : '';
+async function getUserPosts(userId: number, sortOrder?: PostSortOrders, limit?: number, offset?: number): Promise<PaginatedList<Post>> {
+    const params = postsService.getParams({ sortOrder, limit, offset });
     const result = await fetch(`${URL}/${userId}/posts${params}`, {
         headers: {
             "Authorization": getToken(),

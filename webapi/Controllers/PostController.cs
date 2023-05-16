@@ -13,9 +13,9 @@ namespace webapi.Controllers;
 [Route("api/[controller]")]
 public class PostController : ControllerBase
 {
+    private const int PAGINATION_LIMIT = 10;
     private readonly NetworkAppContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
-
 
     public PostController(NetworkAppContext context, UserManager<ApplicationUser> userManager)
     {
@@ -23,9 +23,12 @@ public class PostController : ControllerBase
         _userManager = userManager;
     }
 
-
     [HttpGet]
-    public async Task<ActionResult<List<PostDTO>>> GetAll(string? sortOrder)
+    public async Task<ActionResult<PaginatedList<PostDTO>>> GetAll(
+        string? sortOrder,
+        int limit = PAGINATION_LIMIT,
+        int offset = 0
+    )
     {
         ApplicationUser? user = await _userManager.FindByNameAsync(User.Identity.Name);
         IQueryable<PostDTO> posts = _context.Posts
@@ -34,11 +37,12 @@ public class PostController : ControllerBase
             .Select(post => new PostDTO(post, user.Id));
 
         var sortedPosts = Util.SortPosts(posts, sortOrder);
-        return sortedPosts.ToList();
+        var paginatedPosts = PaginatedList<PostDTO>.CreateAsync(sortedPosts, limit, offset);
+        return paginatedPosts;
     }
 
     [HttpGet("followed")]
-    public async Task<ActionResult<List<PostDTO>>> GetFollowedUsersPosts(string? sortOrder)
+    public async Task<ActionResult<PaginatedList<PostDTO>>> GetFollowedUsersPosts(string? sortOrder, int limit = PAGINATION_LIMIT, int offset = 0)
     {
         ApplicationUser? user = await _context.Users
             .Include(user => user.Follows)
@@ -53,7 +57,8 @@ public class PostController : ControllerBase
             .Select(post => new PostDTO(post, user.Id));
 
         var sortedPosts = Util.SortPosts(followedUsersPosts, sortOrder);
-        return sortedPosts.ToList();
+        var paginatedPosts = PaginatedList<PostDTO>.CreateAsync(sortedPosts, limit, offset);
+        return paginatedPosts;
     }
 
     [HttpGet("{id}")]

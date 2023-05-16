@@ -19,67 +19,38 @@
         </button>
     </div>
     <h3>{{ isMe ? "Your" : "Their" }} posts</h3>
-    <div class="d-flex flex-column gap-3 mt-3">
-        <div>
-            <label for="postSortOrder">Sort posts by:</label>
-            <select v-model="sortOrder" class="form-select" id="postSortOrder">
-                <option :value="PostSortOrders.DATE_DESC">Date descending</option>
-                <option :value="PostSortOrders.DATE_ASC">Date ascending</option>
-                <option :value="PostSortOrders.LIKES_DESC">Likes descending</option>
-                <option :value="PostSortOrders.LIKES_ASC">Likes ascending</option>
-            </select>
-        </div>
-        <PostCard
-            v-for="post in posts"
-            :key="post.id"
-            @edit-post="handleEditPost"
-            :id="post.id"
-            :content="post.content"
-            :created-at="post.createdAt"
-            :updated-at="post.updatedAt"
-            :is-created-by-user="post.isCreatedByUser"
-            :user-id="post.userId"
-            :username="post.username"
-            :is-liked-by-user="post.isLikedByUser"
-            :likes="post.likes"
-        />
-    </div>
+    <PostList
+        :get-posts="getUserPosts"
+        no-posts-message="You haven't made any posts yet"
+    />
 </template>
 
 <script lang="ts" setup>
-import PostCard from '@/components/PostCard.vue';
-import { Post, PostSortOrders, UserInfo } from '@/types';
+import { PaginatedList, Post, PostSortOrders, UserInfo } from '@/types';
 import { computed, inject, ref, watchEffect } from 'vue';
 import userService from '@/services/user';
 import { userKey } from '@/keys';
+import PostList from '@/components/PostList.vue';
 
 const props = defineProps<{
     userId: number;
 }>();
 
 const userInfo = ref<UserInfo>();
-const posts = ref<Post[]>([]);
-const sortOrder = ref<PostSortOrders>(PostSortOrders.DATE_DESC);
 const userProvider = inject(userKey);
 const isMe = computed(() => userProvider?.user.value.id === props.userId);
+
+function getUserPosts(sortOrder?: PostSortOrders, limit?: number, offset?: number): Promise<PaginatedList<Post>> {
+    const result = userService.getUserPosts(props.userId, sortOrder, limit, offset);
+    console.log("FollowingPage getFollowedPosts called", { sortOrder, limit, offset, result });
+    return result;
+}
 
 watchEffect(async () => {
     const fetchedUserInfo = await userService.getUserInfo(props.userId);
     userInfo.value = fetchedUserInfo;
     console.log('get user info result', fetchedUserInfo);
 });
-
-watchEffect(async () => {
-    const userPosts = await userService.getUserPosts(props.userId, sortOrder.value);
-    console.log('get all posts result', userPosts);
-    posts.value = userPosts;
-});
-
-function handleEditPost(editedPost: Post) {
-    const editedPostIndex = posts.value.findIndex((post) => post.id === editedPost.id);
-    posts.value[editedPostIndex] = editedPost;
-    console.log('allpostspage handleEdit:', { editedPost, posts: posts.value });
-}
 
 async function handleFollow() {
     console.log('handleFollow1:', userInfo.value, userInfo.value?.isFollowing);

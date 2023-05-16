@@ -27,6 +27,37 @@
                 :is-liked-by-user="post.isLikedByUser"
                 :likes="post.likes"
             />
+            <nav v-if="pages > 1">
+                <ul class="pagination justify-content-center">
+                    <li
+                        class="page-item"
+                        :class="{ disabled: selectedPage === 1 }"
+                        @click="offset = Math.max(offset - LIMIT, 0)"
+                    >
+                        <a class="page-link" href="#">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li
+                        v-for="page in pages"
+                        :key="page"
+                        class="page-item"
+                        :class="{ active: page === selectedPage }"
+                        @click="offset = (page - 1) * LIMIT"
+                    >
+                        <a class="page-link" href="#">{{ page }}</a>
+                    </li>
+                    <li
+                        class="page-item"
+                        :class="{ disabled: selectedPage === pages }"
+                        @click="offset = Math.min(offset + LIMIT, LIMIT * (pages - 1))"
+                    >
+                        <a class="page-link" href="#">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
 </template>
@@ -35,16 +66,23 @@
 import NewPostCard from '@/components/NewPostCard.vue';
 import PostCard from '@/components/PostCard.vue';
 import { Post, PostSortOrders } from '@/types';
-import { ref, watchEffect } from 'vue';
+import { computed, ref, watchEffect } from 'vue';
 import postsServices from '@/services/posts';
 
+const LIMIT = 10;
+const offset = ref(0);
+const totalItems = ref(0);
 const posts = ref<Post[]>([]);
 const sortOrder = ref<PostSortOrders>(PostSortOrders.DATE_DESC);
+const pages = computed(() => Math.ceil(totalItems.value / LIMIT));
+const selectedPage = computed(() => Math.floor(offset.value / LIMIT) + 1);
 
 watchEffect(async () => {
-    const result = await postsServices.getAllPosts(sortOrder.value);
+    const result = await postsServices.getAllPosts(sortOrder.value, LIMIT, offset.value);
     console.log('get all posts result', result, posts.value);
-    posts.value = result;
+    posts.value = result.items;
+    offset.value = result.offset;
+    totalItems.value = result.totalItems;
 });
 
 function addNewPost(newPost: Post) {
